@@ -1,5 +1,7 @@
 package com.gois.lotostatic;
 
+import org.springframework.stereotype.Component;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -9,7 +11,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
 public class ExcelDownloader {
-    //https://servicebus2.caixa.gov.br/portaldeloterias/api/resultados/download?modalidade=Mega-Sena
+
     public static File downloadExcel(String url, String localPath) throws IOException {
         try (InputStream in = new URL(url).openStream()) {
             Files.copy(in, Paths.get(localPath), StandardCopyOption.REPLACE_EXISTING);

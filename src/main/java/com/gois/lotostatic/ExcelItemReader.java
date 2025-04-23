@@ -1,6 +1,6 @@
 package com.gois.lotostatic;
 
-import com.gois.lotostatic.model.MegaSena;
+import com.gois.lotostatic.model.Sorter;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -10,9 +10,11 @@ import org.springframework.batch.item.ItemReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Iterator;
 
-public class ExcelItemReader implements ItemReader<MegaSena> {
+public class ExcelItemReader implements ItemReader<Sorter> {
 
     private Iterator<Row> rowIterator;
 
@@ -26,11 +28,20 @@ public class ExcelItemReader implements ItemReader<MegaSena> {
     }
 
     @Override
-    public MegaSena read() {
+    public Sorter read() {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         if (rowIterator.hasNext()) {
             Row row = rowIterator.next();
-            var sorteio = new MegaSena(Long.getLong(row.getCell(0).getStringCellValue()));
-            return sorteio;
+            return Sorter.builder()
+                    .concourse(row.getCell(0).getNumericCellValue())
+                    .drawDate(LocalDate.parse(row.getCell(1).getStringCellValue(), formatter))
+                    .numberOne(String.valueOf(row.getCell(2).getNumericCellValue()))
+                    .numberTwo(String.valueOf(row.getCell(3).getNumericCellValue()))
+                    .numberThree(String.valueOf(row.getCell(4).getNumericCellValue()))
+                    .numberFour(String.valueOf(row.getCell(5).getNumericCellValue()))
+                    .numberFive(String.valueOf(row.getCell(6).getNumericCellValue()))
+                    .numberSix(String.valueOf(row.getCell(7).getNumericCellValue()))
+                    .build();
         }
         return null;
     }
