@@ -1,6 +1,4 @@
-package com.gois.lotostatic;
-
-import org.springframework.stereotype.Component;
+package com.gois.lotostatic.util;
 
 import java.io.File;
 import java.io.IOException;
