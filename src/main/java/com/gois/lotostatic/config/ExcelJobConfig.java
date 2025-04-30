@@ -2,6 +2,7 @@ package com.gois.lotostatic.config;
 
 import com.gois.lotostatic.mapper.SorterMapper;
 import com.gois.lotostatic.model.SorterDto;
+import com.gois.lotostatic.processor.SorterItemProcessor;
 import com.gois.lotostatic.reader.ExcelReader;
 import com.gois.lotostatic.util.ExcelDownloader;
 import com.gois.lotostatic.model.Sorter;
@@ -11,6 +12,7 @@ import org.springframework.batch.core.Step;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
+import org.springframework.batch.core.step.tasklet.TaskletStep;
 import org.springframework.batch.item.support.IteratorItemReader;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -34,20 +36,22 @@ public class ExcelJobConfig {
                              PlatformTransactionManager transactionManager,
                              SorterRepository repository,
                              ExcelReader excelReader,
-                             SorterMapper mapper) throws Exception {
+                             SorterMapper mapper,
+                             SorterItemProcessor processor) throws Exception {
 
         String url = "https://servicebus2.caixa.gov.br/portaldeloterias/api/resultados/download?modalidade=Mega-Sena";
         String localPath = "Mega-Sena_temp.xlsx";
         ExcelDownloader.downloadExcel(url, localPath);
 
         List<SorterDto> dados = excelReader.lerExcel(localPath);
-        var lista = dados.stream().map(mapper::map).collect(Collectors.toList());
 
-        return new StepBuilder("importarStep", jobRepository)
-                .<Sorter, Sorter>chunk(10, transactionManager)
-                .reader(new IteratorItemReader<>(lista))
+        TaskletStep importarStep = new StepBuilder("importarStep", jobRepository)
+                .<SorterDto, Sorter>chunk(10, transactionManager)
+                .reader(new IteratorItemReader<>(dados))
+                .processor(processor)
                 .writer(repository::saveAll)
                 .build();
+        return importarStep;
     }
 
 }
