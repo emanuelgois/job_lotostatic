@@ -43,11 +43,15 @@ public class ExcelJobConfig {
         String localPath = "Mega-Sena_temp.xlsx";
         ExcelDownloader.downloadExcel(url, localPath);
 
-        List<SorterDto> dados = excelReader.lerExcel(localPath);
+        Integer ultimoConcurso = repository.findMaxConcourse().orElse(0);
+
+        List<SorterDto> novosRegistros = excelReader.lerExcel(localPath).stream()
+                .filter(dto -> dto.getConcourse() > ultimoConcurso)
+                .toList();
 
         TaskletStep importarStep = new StepBuilder("importarStep", jobRepository)
                 .<SorterDto, Sorter>chunk(10, transactionManager)
-                .reader(new IteratorItemReader<>(dados))
+                .reader(new IteratorItemReader<>(novosRegistros))
                 .processor(processor)
                 .writer(repository::saveAll)
                 .build();
